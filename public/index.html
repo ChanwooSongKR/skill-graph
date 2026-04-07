@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wisdom Database</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <div>
+            <p class="eyebrow">Wisdom Viewer</p>
+            <h1>Wisdom Database</h1>
+          </div>
+          <div class="status" id="status-pill">Loading graph…</div>
+        </div>
+
+        <section class="control-panel" aria-label="Graph controls">
+          <label class="search-field">
+            <span>Search</span>
+            <input id="search-input" type="search" placeholder="Find by summary or id" />
+          </label>
+          <label>
+            <span>Layout</span>
+            <select id="layout-select">
+              <option value="cluster-flow">Cluster Flow</option>
+              <option value="field">Field</option>
+            </select>
+          </label>
+          <label>
+            <span>Edge Type</span>
+            <select id="edge-type-select">
+              <option value="all">All</option>
+            </select>
+          </label>
+          <label>
+            <span>Edge Weight</span>
+            <input id="weight-range" type="range" min="0" max="100" value="55" />
+          </label>
+        </section>
+      </header>
+
+      <main class="viewport">
+        <canvas id="graph-canvas"></canvas>
+        <aside class="inspector">
+          <section class="card compact-card">
+            <div class="card-head">
+              <p class="eyebrow">Overview</p>
+              <button class="panel-toggle inspector-toggle" id="panel-toggle" type="button" aria-expanded="true">
+                Hide Panel
+              </button>
+            </div>
+            <div class="stats-grid" id="stats-grid"></div>
+          </section>
+          <section class="card detail-card">
+            <p class="eyebrow">Selection</p>
+            <div id="selection-panel">
+              <h2>No node selected</h2>
+              <p class="muted">Select a node to inspect its connections and summary.</p>
+            </div>
+          </section>
+          <section class="card compact-card hint-card">
+            <p class="eyebrow">Interaction</p>
+            <ul class="hint-list">
+              <li>Use the wheel to zoom</li>
+              <li>Drag to pan across the graph</li>
+              <li>Search jumps the camera to the first match</li>
+              <li>Layout changes interpolate between precomputed coordinates</li>
+            </ul>
+          </section>
+        </aside>
+        <button class="panel-reveal" id="panel-reveal" type="button" hidden>Show Panel</button>
+      </main>
+    </div>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>

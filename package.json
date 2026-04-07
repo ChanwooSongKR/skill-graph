@@ -1,0 +1,9 @@
+{
+  "name": "wisdom-nebula",
+  "private": true,
+  "scripts": {
+    "build:data": "python3 scripts/build_wisdom_graph.py wisdom_4k_test.dump public/data/wisdom-graph.json",
+    "serve": "python3 -m http.server 4173 -d public",
+    "test": "python3 -m unittest tests/test_build_wisdom_graph.py -v"
+  }
+}
