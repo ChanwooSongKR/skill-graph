@@ -36,6 +36,14 @@ body {
   overflow: hidden;
 }
 
+body.app-ready .graph-hud,
+body.app-ready .topbar,
+body.app-ready .inspector,
+body.app-ready .panel-reveal {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .app-shell {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
@@ -173,6 +181,7 @@ input[type="range"] {
   display: grid;
   grid-template-columns: minmax(0, 1fr) clamp(260px, 23vw, 340px);
   gap: 12px;
+  position: relative;
 }
 
 #graph-canvas {
@@ -187,6 +196,74 @@ input[type="range"] {
     linear-gradient(180deg, rgba(5, 11, 18, 0.9), rgba(3, 8, 14, 0.98));
   border: 1px solid rgba(214, 225, 236, 0.08);
   box-shadow: var(--shadow);
+}
+
+.graph-hud,
+.topbar,
+.inspector,
+.panel-reveal {
+  transition:
+    opacity 280ms ease,
+    transform 280ms ease;
+}
+
+.graph-hud {
+  position: absolute;
+  inset: 18px 18px auto 18px;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) minmax(180px, 240px);
+  justify-content: space-between;
+  align-items: start;
+  gap: 14px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.hud-card {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: linear-gradient(180deg, rgba(10, 15, 22, 0.64), rgba(10, 15, 22, 0.32));
+  border: 1px solid rgba(214, 225, 236, 0.08);
+  border-radius: 18px;
+  padding: 12px 14px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+}
+
+.hud-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.hud-kpi {
+  min-width: 0;
+}
+
+.hud-kpi span,
+.hud-state-item span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.hud-kpi strong,
+.hud-state-item strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.hud-state-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 8px;
 }
 
 .inspector {
@@ -233,10 +310,6 @@ input[type="range"] {
   font: inherit;
   font-size: 0.8rem;
   cursor: pointer;
-}
-
-.viewport {
-  position: relative;
 }
 
 .app-shell.panel-collapsed .panel-reveal {
@@ -367,6 +440,11 @@ input[type="range"] {
     grid-template-rows: auto auto auto;
   }
 
+  .graph-hud {
+    inset: 14px 14px auto 14px;
+    grid-template-columns: 1fr;
+  }
+
   #graph-canvas {
     min-height: 62vh;
   }
@@ -403,6 +481,15 @@ input[type="range"] {
   #graph-canvas {
     min-height: 56vh;
     border-radius: 22px;
+  }
+
+  .graph-hud {
+    inset: 12px 12px auto 12px;
+  }
+
+  .hud-kpi-row,
+  .hud-state-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 

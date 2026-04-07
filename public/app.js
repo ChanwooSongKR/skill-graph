@@ -7,6 +7,8 @@ const searchInput = document.getElementById("search-input");
 const layoutSelect = document.getElementById("layout-select");
 const edgeTypeSelect = document.getElementById("edge-type-select");
 const weightRange = document.getElementById("weight-range");
+const hudKpis = document.getElementById("hud-kpis");
+const hudState = document.getElementById("hud-state");
 const appShell = document.querySelector(".app-shell");
 const panelToggle = document.getElementById("panel-toggle");
 const panelReveal = document.getElementById("panel-reveal");
@@ -35,6 +37,7 @@ const state = {
   searchMatches: null,
   selectedNeighborsCache: { index: -1, set: new Set() },
   inspectorCollapsed: false,
+  frameTime: 0,
 };
 
 const palette = ["#97adbf", "#b9c7d3", "#d1af74", "#788794"];
@@ -52,7 +55,9 @@ async function boot() {
   hydrateGraph(graph);
   populateControls(graph);
   updateStats(graph);
+  updateHud(graph);
   setStatus(`Loaded ${graph.meta.nodeCount.toLocaleString()} nodes`);
+  requestAnimationFrame(() => document.body.classList.add("app-ready"));
   requestRender();
 }
 
@@ -127,6 +132,28 @@ function updateStats(graph) {
 
 function setStatus(message) {
   statusPill.textContent = message;
+}
+
+function updateHud(graph = state.graph) {
+  if (!graph) {
+    return;
+  }
+
+  hudKpis.innerHTML = `
+    <div class="hud-kpi"><span>Nodes</span><strong>${graph.meta.nodeCount.toLocaleString()}</strong></div>
+    <div class="hud-kpi"><span>Edges</span><strong>${graph.meta.edgeCount.toLocaleString()}</strong></div>
+    <div class="hud-kpi"><span>Visible</span><strong>${state.visibleNodes.length.toLocaleString()}</strong></div>
+  `;
+
+  const selectedLabel =
+    state.selectedIndex >= 0 ? "Selected" : state.filter.search ? "Search" : "Browse";
+  const searchValue = state.filter.search ? `"${escapeHtml(state.filter.search)}"` : "None";
+  hudState.innerHTML = `
+    <div class="hud-state-item"><span>Layout</span><strong>${formatLayoutName(state.filter.layout)}</strong></div>
+    <div class="hud-state-item"><span>Edge Filter</span><strong>${escapeHtml(state.filter.edgeType)}</strong></div>
+    <div class="hud-state-item"><span>Mode</span><strong>${selectedLabel}</strong></div>
+    <div class="hud-state-item"><span>Search</span><strong>${searchValue}</strong></div>
+  `;
 }
 
 function syncInspectorState() {
@@ -289,6 +316,7 @@ function render(now) {
     return;
   }
 
+  state.frameTime = now || performance.now();
   updateLayoutFrame(now);
   prepareFrameCache();
 
@@ -297,6 +325,7 @@ function render(now) {
   drawEdges();
   drawNodes();
   drawOverlayText();
+  updateHud();
 
   if (state.layoutTransition) {
     requestRender();
@@ -376,6 +405,44 @@ function drawBackdrop() {
   ctx.filter = "blur(0px)";
   ctx.drawImage(cache.canvas, 0, 0, state.width, state.height);
   ctx.restore();
+
+  drawAtmosphere();
+}
+
+function drawAtmosphere() {
+  const drift = state.frameTime * 0.00008;
+  const sweeps = [
+    { x: 0.22, y: 0.26, radius: 260, color: "rgba(151, 173, 191, 0.08)" },
+    { x: 0.78, y: 0.22, radius: 220, color: "rgba(209, 175, 116, 0.06)" },
+    { x: 0.56, y: 0.68, radius: 320, color: "rgba(120, 135, 148, 0.04)" },
+  ];
+
+  ctx.save();
+  sweeps.forEach((sweep, index) => {
+    const x = state.width * sweep.x + Math.sin(drift + index) * 18;
+    const y = state.height * sweep.y + Math.cos(drift * 1.3 + index) * 14;
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, sweep.radius);
+    glow.addColorStop(0, sweep.color);
+    glow.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(x, y, sweep.radius, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  const vignette = ctx.createRadialGradient(
+    state.width / 2,
+    state.height / 2,
+    Math.min(state.width, state.height) * 0.2,
+    state.width / 2,
+    state.height / 2,
+    Math.max(state.width, state.height) * 0.68
+  );
+  vignette.addColorStop(0, "rgba(0, 0, 0, 0)");
+  vignette.addColorStop(1, "rgba(2, 5, 10, 0.42)");
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, state.width, state.height);
+  ctx.restore();
 }
 
 function drawEdges() {
@@ -412,7 +479,7 @@ function drawEdges() {
       continue;
     }
 
-    let alpha = 0.035 + weight * 0.08;
+    let alpha = 0.03 + weight * 0.09;
     let stroke = "rgba(151, 173, 191, 0.12)";
     if (edgeType === "col") {
       stroke = "rgba(209, 175, 116, 0.12)";
@@ -428,7 +495,7 @@ function drawEdges() {
     }
 
     ctx.strokeStyle = applyAlpha(stroke, alpha);
-    ctx.lineWidth = highlightMode ? (alpha > 0.1 ? 1 : 0.45) : 0.3 + weight * 0.7;
+    ctx.lineWidth = highlightMode ? (alpha > 0.1 ? 1.05 : 0.4) : 0.28 + weight * 0.82;
     ctx.beginPath();
     ctx.moveTo(p0.x, p0.y);
     ctx.lineTo(p1.x, p1.y);
@@ -461,7 +528,7 @@ function drawNodes() {
     }
 
     visibleNodes.push(index);
-    const radius = node.size * (0.7 + state.camera.scale * 0.22);
+    const radius = node.size * (0.68 + state.camera.scale * 0.24);
     const isSelected = index === state.selectedIndex;
     const isHovered = index === state.hoveredIndex;
     const highlighted =
@@ -471,13 +538,21 @@ function drawNodes() {
     if (highlighted) {
       ctx.save();
       ctx.fillStyle = hexToRgba(color, isSelected ? 0.38 : 0.2);
-      ctx.shadowBlur = isSelected ? 20 : 10;
+      ctx.shadowBlur = isSelected ? 26 : 14;
       ctx.shadowColor = color;
       ctx.beginPath();
-      ctx.arc(point.x, point.y, radius * (isSelected ? 2.1 : 1.7), 0, Math.PI * 2);
+      ctx.arc(point.x, point.y, radius * (isSelected ? 2.4 : 1.85), 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }
+
+    ctx.save();
+    ctx.globalAlpha = searchMode ? 0.24 : 0.16;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, radius * 1.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
 
     ctx.fillStyle = highlighted ? "#f2eadc" : hexToRgba(color, searchMode ? 0.5 : 0.38);
     ctx.beginPath();
@@ -685,6 +760,16 @@ function resolveLayoutName(graph, requestedLayout) {
   }
   const available = Object.keys(graph.layouts).find((name) => name !== "current");
   return available || requestedLayout;
+}
+
+function formatLayoutName(layout) {
+  if (layout === "cluster-flow") {
+    return "Cluster Flow";
+  }
+  if (layout === "field") {
+    return "Field";
+  }
+  return layout;
 }
 
 function clamp(value, min, max) {
