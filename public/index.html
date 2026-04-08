@@ -43,17 +43,19 @@
       </header>
 
       <main class="viewport">
-        <canvas id="graph-canvas"></canvas>
-        <div class="graph-hud" aria-hidden="true">
-          <section class="hud-card hud-kpis">
-            <p class="eyebrow">Graph Pulse</p>
-            <div class="hud-kpi-row" id="hud-kpis"></div>
-          </section>
-          <section class="hud-card hud-state">
-            <p class="eyebrow">View State</p>
-            <div class="hud-state-grid" id="hud-state"></div>
-          </section>
-        </div>
+        <section class="graph-stage" aria-label="Graph viewport">
+          <canvas id="graph-canvas"></canvas>
+          <div class="graph-hud" aria-hidden="true">
+            <section class="hud-card hud-kpis">
+              <p class="eyebrow">Graph Pulse</p>
+              <div class="hud-kpi-row" id="hud-kpis"></div>
+            </section>
+            <section class="hud-card hud-state">
+              <p class="eyebrow">View State</p>
+              <div class="hud-state-grid" id="hud-state"></div>
+            </section>
+          </div>
+        </section>
         <aside class="inspector">
           <section class="card compact-card">
             <div class="card-head">
